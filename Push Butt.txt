@@ -1,0 +1,19 @@
+const int ledPin = 9;      // Pin for the LED
+const int buttonPin = 2;   // Pin for the push button
+
+int buttonState = 0;       // Variable for reading the push button status
+
+void setup() {
+  pinMode(ledPin, OUTPUT);         // Initialize the LED pin as an output
+  pinMode(buttonPin, INPUT);       // Initialize the push button pin as an input
+}
+
+void loop() {
+  buttonState = digitalRead(buttonPin); // Read the state of the push button
+
+  if (buttonState == HIGH) { // If the button is pressed
+    digitalWrite(ledPin, HIGH);  // Turn the LED on
+  } else {                     // If the button is not pressed
+    digitalWrite(ledPin, LOW);   // Turn the LED off
+  }
+}

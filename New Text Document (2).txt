@@ -1,0 +1,27 @@
+#include <Servo.h>
+
+Servo myServo;  // Create a Servo object
+
+const int buttonPin = 2; // Pin for the push button
+int buttonState = 0;      // Variable for reading the push button status
+
+void setup() {
+  myServo.attach(9);       // Attach the servo to pin 9
+  pinMode(buttonPin, INPUT); // Initialize the button pin as an input
+}
+
+void loop() {
+  buttonState = digitalRead(buttonPin); // Read the state of the push button
+
+  if (buttonState == HIGH) { // If the button is pressed
+    for (int pos = 0; pos <= 180; pos += 1) { // Sweep from 0 to 180 degrees
+      myServo.write(pos);  // Tell the servo to go to the specified position
+      delay(15);           // Wait for the servo to reach the position
+    }
+    delay(1000); // Optional delay before returning to 0 degrees
+    for (int pos = 180; pos >= 0; pos -= 1) { // Sweep back from 180 to 0 degrees
+      myServo.write(pos);  // Tell the servo to go to the specified position
+      delay(15);           // Wait for the servo to reach the position
+    }
+  }
+}

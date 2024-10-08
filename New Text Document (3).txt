@@ -1,0 +1,33 @@
+const int motorPin1 = 9;  // Pin for IN1 (forward)
+const int motorPin2 = 10; // Pin for IN2 (reverse)
+const int buttonPin = 2;   // Pin for the push button
+
+bool motorDirection = true; // True for forward, false for reverse
+
+void setup() {
+  pinMode(motorPin1, OUTPUT); // Set motor control pins as output
+  pinMode(motorPin2, OUTPUT);
+  pinMode(buttonPin, INPUT);  // Set button pin as input
+}
+
+void loop() {
+  static bool lastButtonState = LOW; // Previous button state
+  bool currentButtonState = digitalRead(buttonPin); // Read current button state
+
+  // Check if button is pressed
+  if (currentButtonState == HIGH && lastButtonState == LOW) {
+    motorDirection = !motorDirection; // Toggle motor direction
+    delay(200); // Debounce delay
+  }
+
+  lastButtonState = currentButtonState; // Store the last button state
+
+  // Control motor direction
+  if (motorDirection) {
+    digitalWrite(motorPin1, HIGH);  // Run motor forward
+    digitalWrite(motorPin2, LOW);
+  } else {
+    digitalWrite(motorPin1, LOW);   // Run motor reverse
+    digitalWrite(motorPin2, HIGH);
+  }
+}

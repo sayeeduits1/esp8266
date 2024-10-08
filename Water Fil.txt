@@ -1,0 +1,96 @@
+// Pin definitions
+const int inputPins[] = {6, 7, 8, 9};  // Input pins with pull-up resistors
+const int outputPins[] = {10, 11, 12, 13};  // Corresponding output pins
+const int autoOutputPin = 5;  // Pin 5 for auto mode
+const int manualOutputPin = 4;  // Pin 4 for manual mode and buzzer
+const int modeSwitchPin = 2;  // Pin for switching between auto and manual modes
+
+unsigned long pin6HighStartTime = 0;  // Track when pin 6 goes high
+bool isPin6High = false;
+bool pin5Activated = false;  // Track if pin 5 has been activated
+
+void setup() {
+  Serial.begin(115200);
+
+  // Initialize input pins and set them to HIGH state with internal pull-up resistors
+  for (int i = 0; i < 4; i++) {
+    pinMode(inputPins[i], INPUT_PULLUP);
+  }
+
+  // Initialize output pins and set them to LOW
+  for (int i = 0; i < 4; i++) {
+    pinMode(outputPins[i], OUTPUT);
+    digitalWrite(outputPins[i], LOW);
+  }
+
+  // Initialize mode switch pin and output pins for auto/manual mode
+  pinMode(modeSwitchPin, INPUT_PULLUP);
+  pinMode(autoOutputPin, OUTPUT);
+  pinMode(manualOutputPin, OUTPUT);
+  digitalWrite(autoOutputPin, LOW);
+  digitalWrite(manualOutputPin, LOW);
+}
+
+void loop() {
+  bool isAutoMode = digitalRead(modeSwitchPin) == LOW;  // Check mode switch state
+
+  // Check each input pin and set corresponding output pin
+  for (int i = 0; i < 4; i++) {
+    if (digitalRead(inputPins[i]) == LOW) {  // If input pin is LOW
+      digitalWrite(outputPins[i], HIGH);     // Set corresponding output pin HIGH
+    } else {
+      digitalWrite(outputPins[i], LOW);      // Otherwise, set it LOW
+    }
+  }
+
+  if (isAutoMode) {
+    // Auto Mode: Monitor pin 6 for being HIGH for more than 5 seconds
+    if (digitalRead(6) == HIGH) {
+      if (!isPin6High) {
+        pin6HighStartTime = millis();  // Start timing when pin 6 goes high
+        isPin6High = true;
+      } else if (millis() - pin6HighStartTime > 5000 && !pin5Activated) {
+        digitalWrite(autoOutputPin, HIGH);  // Set pin 5 high after 5 seconds
+        pin5Activated = true;  // Track that pin 5 has been activated
+      }
+    } else {
+      // Reset timing when pin 6 goes low, but do not turn off pin 5
+      isPin6High = false;
+      pin6HighStartTime = 0;
+    }
+
+    // Turn off pin 5 only when pin 9 goes LOW
+    if (digitalRead(9) == LOW && pin5Activated) {
+      digitalWrite(autoOutputPin, LOW);
+      pin5Activated = false;  // Reset activation state
+    }
+
+  } else {
+    // Manual Mode: If pin 6 is HIGH for more than 5 seconds, set pin 4 HIGH for 1 second
+    if (digitalRead(6) == HIGH) {
+      if (!isPin6High) {
+        pin6HighStartTime = millis();
+        isPin6High = true;
+      } else if (millis() - pin6HighStartTime > 5000) {
+        digitalWrite(manualOutputPin, HIGH);
+        delay(1000);
+        digitalWrite(manualOutputPin, LOW);
+      }
+    } else {
+      isPin6High = false;
+      pin6HighStartTime = 0;
+    }
+
+    // Check if pin 9 goes low to activate the buzzer
+    if (digitalRead(9) == LOW) {
+      soundBuzzer(5000);  // Activate buzzer for 5 seconds
+    }
+  }
+}
+
+// Function to sound the buzzer for a specific duration
+void soundBuzzer(int duration) {
+  digitalWrite(manualOutputPin, HIGH);  // Turn the buzzer on (using pin 4)
+  delay(duration);                      // Keep it on for the specified duration
+  digitalWrite(manualOutputPin, LOW);   // Turn the buzzer off
+}
